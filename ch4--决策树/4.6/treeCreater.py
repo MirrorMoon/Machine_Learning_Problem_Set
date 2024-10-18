@@ -25,10 +25,18 @@ class Node(object):
 
 
 class DecisionTree(object):
+
     '''
     没有针对缺失值的情况作处理。
     '''
-
+    def get_params(self, deep=True):
+        return {'criterion': self.criterion, 'pruning': self.pruning}
+    def set_params(self, **params):
+        if not params:
+            return self
+        for key, value in params.items():
+            setattr(self, key, value)
+        return self
     def __init__(self, criterion='gini', pruning=None):
         '''
 
@@ -262,7 +270,7 @@ class DecisionTree(object):
             return [gini_index]
 
     def gini(self, y):
-        p = pd.value_counts(y) / y.shape[0]
+        p = pd.Series(y).value_counts() / y.shape[0]
         gini = 1 - np.sum(p ** 2)
         return gini
 
@@ -336,7 +344,10 @@ class DecisionTree(object):
         p = pd.value_counts(y) / y.shape[0]  # 计算各类样本所占比率
         ent = np.sum(-p * np.log2(p))
         return ent
-
+    def score(self, X, y):
+        """计算模型在给定数据集上的准确率。"""
+        predictions = self.predict(X)  # 从模型获取预测结果
+        return np.mean(predictions == y)  # 计算并返回准确率
 
 if __name__ == '__main__':
 
