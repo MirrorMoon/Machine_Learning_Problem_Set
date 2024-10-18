@@ -201,7 +201,9 @@ if __name__ == '__main__':
     y2 = -(w1_sk * x2 + lr.intercept_) / w2  # 计算sklearn模型的决策边界
 
     ax2, = plt.plot(x2, y2, label=r'sklearn_logistic')  # 绘制sklearn模型的决策边界
-
+    # 解决无法正常显示标签
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+    plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
     plt.legend(loc='upper right')  # 添加图例
     plt.show()  # 显示图像
 

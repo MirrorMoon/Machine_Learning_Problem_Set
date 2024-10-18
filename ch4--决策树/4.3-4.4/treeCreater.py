@@ -12,7 +12,10 @@ from sklearn.utils.multiclass import type_of_target
 import treePlottter
 import pruning
 from sklearn import linear_model
+import warnings
 
+# 忽略所有警告
+warnings.filterwarnings("ignore")
 class Node(object):
     def __init__(self):
         self.feature_name = None
@@ -536,7 +539,7 @@ if __name__ == '__main__':
     # data_path = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon3_0_Ch.csv'
     # data3 = pd.read_csv(data_path, index_col=0)
     #
-    # tree = DecisionTree('infogain', None)
+    # tree = DecisionTree('infogain', None,data3)
     # #第一个参数是特征，第二个参数是标签
     # tree.fit(data3.iloc[:, :8], data3.iloc[:, 8])
     # treePlottter.create_plot(tree.tree_)
@@ -544,6 +547,28 @@ if __name__ == '__main__':
     # 4.4
     # data_path2 = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon2_0_Ch.txt'
     # data = pd.read_table(data_path2, encoding='utf8', delimiter=',', index_col=0)
+    # # data_path = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon3_0_Ch.csv'
+    # # data = pd.read_csv(data_path, index_col=0)
+    #
+    # train = [1, 2, 3, 6, 7, 10, 14, 15, 16, 17]
+    # #转换成数组下标
+    # train = [i - 1 for i in train]
+    # #分别获取训练集数据和标签
+    # X = data.iloc[train, :6]
+    # y = data.iloc[train, 6]
+    #
+    # test = [4, 5, 8, 9, 11, 12, 13]
+    # test = [i - 1 for i in test]
+    #
+    # X_val = data.iloc[test, :6]
+    # y_val = data.iloc[test, 6]
+    #
+    # tree = DecisionTree('gini', None,data)
+    # tree.fit(X, y, X_val, y_val)
+    # print(np.mean(tree.predict(X_val) == y_val))
+    # treePlottter.create_plot(tree.tree_)
+
+    # 4.5
     data_path = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon3_0_Ch.csv'
     data = pd.read_csv(data_path, index_col=0)
 
@@ -564,4 +589,3 @@ if __name__ == '__main__':
     tree.fit(X, y, X_val, y_val)
     print(np.mean(tree.predict(X_val) == y_val))
     treePlottter.create_plot(tree.tree_)
-
