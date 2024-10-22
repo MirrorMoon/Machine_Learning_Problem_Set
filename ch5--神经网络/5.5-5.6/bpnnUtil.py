@@ -3,16 +3,31 @@ from matplotlib import pyplot as plt
 
 
 def xavier_initializer(layer_dims_, seed=16):
+    """
+     Xavier初始化方法，适用于sigmoid/tanh激活函数。
+     :param layer_dims_: 神经网络每层的神经元数量。
+     :param seed: 随机种子，保证每次运行结果相同。
+     :return: 初始化后的权重和偏置字典。
+     """
+    # 设置随机种子，以确保每次运行代码时生成的随机数相同
     np.random.seed(seed)
 
+    # 初始化一个空字典，用于存储权重和偏置
     parameters_ = {}
+    # 获取神经网络的层数
     num_L = len(layer_dims_)
+    # 遍历每一层（除了最后一层）
     for l in range(num_L - 1):
+        # 使用 Xavier 初始化方法生成权重矩阵
         temp_w = np.random.randn(layer_dims_[l + 1], layer_dims_[l]) * np.sqrt(1 / layer_dims_[l])
+        # 初始化输出层（可以是隐层，也可以是最终的输出层）偏置为零，所以肯定从l+1开始
         temp_b = np.zeros((1, layer_dims_[l + 1]))
 
+        # 将生成的每一层（两两相连）权重矩阵存储在字典中
         parameters_['W' + str(l + 1)] = temp_w
+        # 将生成的每一层（两两相连）偏置向量存储在字典中
         parameters_['b' + str(l + 1)] = temp_b
+
 
     return parameters_
 
@@ -77,7 +92,9 @@ def softmax(z):
 
 def sigmoid_backward(da_, cache_z):
     a = 1 / (1 + np.exp(-cache_z))
+    #da是损失函数对激活值的偏导，a*(1-a)是激活函数对z的偏导,也就是书上的5.10式，只不过损失函数换成了交叉熵，但是逻辑是一样的。da总是表示来自下一层损失函数对激活值的偏导
     dz_ = da_ * a * (1 - a)
+    #由于梯度 dz_ 是从 z 上反向传播计算出来的，因此 dz_ 和 z 必须有相同的形状。这是因为每一个元素 z 对应的梯度 dz_ 也应该是一个相同维度的标量。
     assert dz_.shape == cache_z.shape
     return dz_
 
@@ -100,6 +117,8 @@ def relu_backward(da_, cache_z):
 
 def update_parameters_with_gd(parameters_, grads, learning_rate):
     L_ = int(len(parameters_) / 2)
+    transDictObject2Float(parameters_)
+    transDictObject2Float(grads)
 
     for l in range(1, L_ + 1):
         parameters_['W' + str(l)] -= learning_rate * grads['dW' + str(l)]
@@ -110,7 +129,8 @@ def update_parameters_with_gd(parameters_, grads, learning_rate):
 
 def update_parameters_with_sgd(parameters_, grads, learning_rate):
     L_ = int(len(parameters_) / 2)
-
+    transDictObject2Float(parameters_)
+    transDictObject2Float(grads)
     for l in range(1, L_ + 1):
         parameters_['W' + str(l)] -= learning_rate * grads['dW' + str(l)]
         parameters_['b' + str(l)] -= learning_rate * grads['db' + str(l)]
@@ -194,7 +214,7 @@ def set_ax_gray(ax):
 
 def plot_costs(costs, labels, colors=None):
     if colors is None:
-        colors = ['C', 'lightcoral']
+        colors = ['blue', 'lightcoral']
 
     ax = plt.subplot()
     assert len(costs) == len(labels)
@@ -205,3 +225,11 @@ def plot_costs(costs, labels, colors=None):
     ax.set_xlabel('num epochs')
     ax.set_ylabel('cost')
     plt.show()
+def transDictObject2Float(dict_):
+    for key, value in dict_.items():
+        if isinstance(value, np.ndarray) and value.dtype == object:
+            # 尝试将数组转换为 float 类型
+            try:
+                dict_[key] = value.astype(np.float64)
+            except ValueError as e:
+                print(f"无法将 {key} 转换为 float: {e}")

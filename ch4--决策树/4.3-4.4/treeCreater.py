@@ -5,8 +5,6 @@
 
 import numpy as np
 import pandas as pd
-from envs.machine_learning.DLLs.pyexpat import features
-from numpy.matlib import empty
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.multiclass import type_of_target
 import treePlottter
@@ -536,13 +534,13 @@ class DecisionTree(object):
 if __name__ == '__main__':
 
     # 4.3
-    # data_path = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon3_0_Ch.csv'
-    # data3 = pd.read_csv(data_path, index_col=0)
-    #
-    # tree = DecisionTree('infogain', None,data3)
-    # #第一个参数是特征，第二个参数是标签
-    # tree.fit(data3.iloc[:, :8], data3.iloc[:, 8])
-    # treePlottter.create_plot(tree.tree_)
+    data_path = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon3_0_Ch.csv'
+    data3 = pd.read_csv(data_path, index_col=0)
+
+    tree = DecisionTree('infogain', None,data3)
+    #第一个参数是特征，第二个参数是标签
+    tree.fit(data3.iloc[:, :8], data3.iloc[:, 8])
+    treePlottter.create_plot(tree.tree_)
 
     # 4.4
     # data_path2 = r'C:\Users\叶枫\Desktop\MachineLearning_Zhouzhihua_ProblemSets\ch4--决策树\watermelon2_0_Ch.txt'

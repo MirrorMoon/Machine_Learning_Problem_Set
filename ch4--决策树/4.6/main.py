@@ -14,8 +14,6 @@ from sklearn.model_selection import train_test_split, cross_val_score
 import treeCreater
 from scipy.stats import ttest_rel
 def cross_val_score(estimator, X, y,X_val,y_val,cv=10):
-    # 自己写一个 k-10 交叉验证的实现
-
     X_tem=X.reset_index(drop=True)
     y_tem=y.reset_index(drop=True)
     X_val_tem = X_val.reset_index(drop=True)
