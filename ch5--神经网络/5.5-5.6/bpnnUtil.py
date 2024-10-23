@@ -92,7 +92,7 @@ def softmax(z):
 
 def sigmoid_backward(da_, cache_z):
     a = 1 / (1 + np.exp(-cache_z))
-    #da是损失函数对激活值的偏导，a*(1-a)是激活函数对z的偏导,也就是书上的5.10式，只不过损失函数换成了交叉熵，但是逻辑是一样的。da总是表示来自下一层损失函数对激活值的偏导
+    #da是损失函数对激活值y^的偏导，a*(1-a)是激活函数对z的偏导,也就是书上的5.10式，只不过损失函数换成了交叉熵，但是逻辑是一样的。da总是表示来自下一层损失函数对激活值的偏导
     dz_ = da_ * a * (1 - a)
     #由于梯度 dz_ 是从 z 上反向传播计算出来的，因此 dz_ 和 z 必须有相同的形状。这是因为每一个元素 z 对应的梯度 dz_ 也应该是一个相同维度的标量。
     assert dz_.shape == cache_z.shape
@@ -117,10 +117,13 @@ def relu_backward(da_, cache_z):
 
 def update_parameters_with_gd(parameters_, grads, learning_rate):
     L_ = int(len(parameters_) / 2)
+    #转换成float类型，否则会报错
     transDictObject2Float(parameters_)
     transDictObject2Float(grads)
 
+    #L+1是因为向下取整后L_=2,那么range(1,2)只有1，所以要加1遍历最后一层
     for l in range(1, L_ + 1):
+        #利用计算出来的梯度逐层开始更新参数
         parameters_['W' + str(l)] -= learning_rate * grads['dW' + str(l)]
         parameters_['b' + str(l)] -= learning_rate * grads['db' + str(l)]
 

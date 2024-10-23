@@ -92,7 +92,8 @@ class BpNN(object):
 
     def backward_one_layer(self, da_, cache_, activation_):
         # 在activation_ 为'softmax'时， da_实际上输入是y_， 并不是输出层的梯度
-        (a_pre_, w_, b_, z_) = cache_  # 从缓存中获取前一层的激活值、权重、偏置和线性输出
+        (a_pre_, w_, b_, z_) = cache_  # 从缓存中获取前一层的激活值，当前层的权重，偏置以及神经元的输入
+
         m = da_.shape[0]  # 获取样本数量
 
         assert activation_ in ('sigmoid', 'relu', 'softmax')  # 确保激活函数是'sigmoid'、'relu'或'softmax'
@@ -106,11 +107,14 @@ class BpNN(object):
             dz_ = bpnnUtil.softmax_backward(da_, z_)
 
         # 计算权重和偏置的梯度
-        #书5.11式，5.12式
+        #书5.11式，5.12式,5.15式
         #dz是gj,a_pre_是bh，1/m是学习率η
         dw = np.dot(dz_.T, a_pre_) / m
         db = np.sum(dz_, axis=0, keepdims=True) / m
-        #即只需要损失函数偏导至bh
+        #
+        # da_pre =np.dot(np.dot(dz_, w_),np.dot(a_pre_.T,a_pre_))  # 计算前一层神经元的梯度，这是书上的5.15式，但是结果是错误的
+        #这里是常规的反向传播算法，即计算出损失函数相对于前一层的激活值的梯度
+        #然后这个da_pre_在下次循环的时候就是上一层的da_，这样就可以一层一层的反向传播计算梯度
         da_pre = np.dot(dz_, w_)  # 计算前一层的激活值的梯度
 
         # 确保梯度的形状与相应的参数一致
@@ -118,7 +122,7 @@ class BpNN(object):
         assert db.shape == b_.shape
         assert da_pre.shape == a_pre_.shape
 
-        return da_pre, dw, db  # 返回前一层的激活值梯度、权重梯度和偏置梯度
+        return da_pre, dw, db  # 返回前一层的激活值梯度以及链接权重梯度和当前层偏置梯度
 
 
 
@@ -136,16 +140,19 @@ class BpNN(object):
         if y_.shape[1] == 1:
             # 计算输出层的梯度
             #将最后一层即最终的输出层的输入作为反向传播的输入，计算输出层的梯度
-            #计算出输出层的梯度，即损失函数对输出层的偏导数，这里的损失函数是交叉熵
+            #计算出输出层的梯度，即损失函数E对输出层y^的偏导数，这里的损失函数是交叉熵
             da_last = -(y_ / a_last - (1 - y_) / (1 - a_last))
             da_pre_L_1, dwL_, dbL_ = self.backward_one_layer(da_last, caches[L - 1], 'sigmoid')
+            #todo softmax的梯度计算
         else:  # 多分类
             # 计算softmax的梯度
             da_pre_L_1, dwL_, dbL_ = self.backward_one_layer(y_, caches[L - 1], 'softmax')
 
-        # 保存输出层的梯度
+        # 保存损失函数e对上一层（隐层）的激活值的梯度
         grads['da' + str(L)] = da_pre_L_1
+        #当前层的权重梯度
         grads['dW' + str(L)] = dwL_
+        #当前层的偏置梯度
         grads['db' + str(L)] = dbL_
 
         # 反向传播每一层
@@ -167,7 +174,7 @@ class BpNN(object):
         # 确保激活函数是 'sigmoid'、'relu' 或 'softmax'
         assert activation_ in ('sigmoid', 'relu', 'softmax')
 
-        # 根据激活函数类型计算激活值 a_
+        # 根据激活函数类型计算当前层激活值 a_
         if activation_ == 'sigmoid':
             a_ = bpnnUtil.sigmoid(z_)
         elif activation_ == 'relu':
@@ -175,7 +182,8 @@ class BpNN(object):
         else:
             a_ = bpnnUtil.softmax(z_)
 
-        # 将前向传播过程中产生的数据保存下来，在向后传播过程计算梯度的时候要用上
+        # 将前向传播过程中产生的数据保存下来，在反向传播传播过程计算梯度的时候要用上
+        #因为对于反向传播而言，需要知道当前层的输入，权重，偏置，输出，以及上一层的输出，所以这里将这些数据保存下来
         cache_ = (a_pre_, w_, b_, z_)
         return a_, cache_
 
@@ -220,7 +228,7 @@ class BpNN(object):
             a_last, caches = self.forward_L_layer(X_, parameters_)
             # 反向传播，计算梯度
             grads = self.backward_L_layer(a_last, y_, caches)
-            # 更新参数
+            # 利用计算出来的梯度更新参数
             parameters_ = bpnnUtil.update_parameters_with_gd(parameters_, grads, learning_rate)
             # 计算当前epoch的损失值
             cost = self.compute_cost(a_last, y_)
@@ -229,28 +237,68 @@ class BpNN(object):
         # 返回更新后的参数和损失值列表
         return parameters_, costs
 
+
     def optimizer_sgd(self, X_, y_, parameters_, num_epochs, learning_rate, seed):
         '''
-        sgd中，更新参数步骤和gd是一致的，只不过在计算梯度的时候是用一个样本而已。
+        随机梯度下降（SGD）优化器。
+        在SGD中，参数更新步骤与GD相似，但梯度是使用单个样本计算的。
+
+        :param X_: 输入数据
+        :param y_: 输出标签
+        :param parameters_: 初始化的参数
+        :param num_epochs: 训练次数
+        :param learning_rate: 学习率
+        :param seed: 随机种子，确保结果一致性
+        :return: 更新后的参数和损失值历史
         '''
         np.random.seed(seed)
         costs = []
         m_ = X_.shape[0]
+
         for _ in range(num_epochs):
+            # 随机选择一个样本
             random_index = np.random.randint(0, m_)
 
+            # 选定样本的前向传播
             a_last, caches = self.forward_L_layer(X_[[random_index], :], parameters_)
+
+            # 反向传播计算梯度
             grads = self.backward_L_layer(a_last, y_[[random_index], :], caches)
 
+            # 使用计算出的梯度更新参数
             parameters_ = bpnnUtil.update_parameters_with_sgd(parameters_, grads, learning_rate)
 
+            # 计算整个数据集的损失值
             a_last_cost, _ = self.forward_L_layer(X_, parameters_)
-
             cost = self.compute_cost(a_last_cost, y_)
 
+            # 存储损失值
             costs.append(cost)
 
         return parameters_, costs
+
+    # def optimizer_sgd(self, X_, y_, parameters_, num_epochs, learning_rate, seed):
+    #     '''
+    #     sgd中，更新参数步骤和gd是一致的，只不过在计算梯度的时候是用一个样本而已。
+    #     '''
+    #     np.random.seed(seed)
+    #     costs = []
+    #     m_ = X_.shape[0]
+    #     for _ in range(num_epochs):
+    #         random_index = np.random.randint(0, m_)
+    #
+    #         a_last, caches = self.forward_L_layer(X_[[random_index], :], parameters_)
+    #         grads = self.backward_L_layer(a_last, y_[[random_index], :], caches)
+    #
+    #         parameters_ = bpnnUtil.update_parameters_with_sgd(parameters_, grads, learning_rate)
+    #
+    #         a_last_cost, _ = self.forward_L_layer(X_, parameters_)
+    #
+    #         cost = self.compute_cost(a_last_cost, y_)
+    #
+    #         costs.append(cost)
+    #
+    #     return parameters_, costs
 
     def optimizer_sgd_monment(self, X_, y_, parameters_, beta, num_epochs, learning_rate, seed):
         '''
