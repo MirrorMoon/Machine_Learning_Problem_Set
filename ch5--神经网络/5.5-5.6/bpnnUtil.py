@@ -166,43 +166,92 @@ def update_parameters_with_sgd_momentum(parameters, grads, velcoity, beta, learn
     return parameters, velcoity
 
 
+
 def initialize_adam(paramters_):
+    # 计算神经网络的层数
     l = int(len(paramters_) / 2)
+    # 初始化字典，用于存储梯度的平方和动量
+    #梯度的平方2阶矩会使用，动量1阶矩使用
     square_grad = {}
     velcoity = {}
+    # 遍历每一层
     for i in range(l):
+        # 初始化梯度的平方和动量为零矩阵
+        square_grad['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
+        square_grad['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
+        velcoity['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
+        velcoity['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
+    # 返回初始化后的字典
+    return velcoity, square_grad
 
-        for i in range(l):
-            square_grad['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
-            square_grad['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
-            velcoity['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
-            velcoity['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
-        return velcoity, square_grad
+# def initialize_adam(paramters_):
+#     l = int(len(paramters_) / 2)
+#     square_grad = {}
+#     velcoity = {}
+#     for i in range(l):
+#
+#         for i in range(l):
+#             square_grad['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
+#             square_grad['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
+#             velcoity['dW' + str(i + 1)] = np.zeros(paramters_['W' + str(i + 1)].shape)
+#             velcoity['db' + str(i + 1)] = np.zeros(paramters_['b' + str(i + 1)].shape)
+#         return velcoity, square_grad
+
 
 
 def update_parameters_with_sgd_adam(parameters_, grads_, velcoity, square_grad, epoch, learning_rate=0.1, beta1=0.9,
                                     beta2=0.999, epsilon=1e-8):
+    # 计算神经网络的层数
     l = int(len(parameters_) / 2)
 
+    # 遍历每一层
     for i in range(l):
+        # 更新动量
+        # 注意，动量的状态是根据主算法迭代次数来更新的，所以代码的后半部分用的是velcoity['dW' + str(i + 1)]
         velcoity['dW' + str(i + 1)] = beta1 * velcoity['dW' + str(i + 1)] + (1 - beta1) * grads_['dW' + str(i + 1)]
         velcoity['db' + str(i + 1)] = beta1 * velcoity['db' + str(i + 1)] + (1 - beta1) * grads_['db' + str(i + 1)]
 
-        vw_correct = velcoity['dW' + str(i + 1)] / (1 - np.power(beta1, epoch))         # 这里是对迭代初期的梯度进行修正
+        # 对动量进行偏差修正，为了让动量特性在最开始就能起作用，显然当迭代次数t足够大时，分母就会趋近于1，即mt^无限趋于mt
+        vw_correct = velcoity['dW' + str(i + 1)] / (1 - np.power(beta1, epoch))
         vb_correct = velcoity['db' + str(i + 1)] / (1 - np.power(beta1, epoch))
 
-        square_grad['dW' + str(i + 1)] = beta2 * square_grad['dW' + str(i + 1)] + (1 - beta2) * (
-                    grads_['dW' + str(i + 1)] ** 2)
-        square_grad['db' + str(i + 1)] = beta2 * square_grad['db' + str(i + 1)] + (1 - beta2) * (
-                    grads_['db' + str(i + 1)] ** 2)
+        # 更新梯度的平方和
+        square_grad['dW' + str(i + 1)] = beta2 * square_grad['dW' + str(i + 1)] + (1 - beta2) * (grads_['dW' + str(i + 1)] ** 2)
+        square_grad['db' + str(i + 1)] = beta2 * square_grad['db' + str(i + 1)] + (1 - beta2) * (grads_['db' + str(i + 1)] ** 2)
 
+        # 对梯度的平方和进行偏差修正
         sw_correct = square_grad['dW' + str(i + 1)] / (1 - np.power(beta2, epoch))
         sb_correct = square_grad['db' + str(i + 1)] / (1 - np.power(beta2, epoch))
 
+        # 更新参数
         parameters_['W' + str(i + 1)] -= learning_rate * vw_correct / np.sqrt(sw_correct + epsilon)
         parameters_['b' + str(i + 1)] -= learning_rate * vb_correct / np.sqrt(sb_correct + epsilon)
 
     return parameters_, velcoity, square_grad
+
+# def update_parameters_with_sgd_adam(parameters_, grads_, velcoity, square_grad, epoch, learning_rate=0.1, beta1=0.9,
+#                                     beta2=0.999, epsilon=1e-8):
+#     l = int(len(parameters_) / 2)
+#
+#     for i in range(l):
+#         velcoity['dW' + str(i + 1)] = beta1 * velcoity['dW' + str(i + 1)] + (1 - beta1) * grads_['dW' + str(i + 1)]
+#         velcoity['db' + str(i + 1)] = beta1 * velcoity['db' + str(i + 1)] + (1 - beta1) * grads_['db' + str(i + 1)]
+#
+#         vw_correct = velcoity['dW' + str(i + 1)] / (1 - np.power(beta1, epoch))         # 这里是对迭代初期的梯度进行修正
+#         vb_correct = velcoity['db' + str(i + 1)] / (1 - np.power(beta1, epoch))
+#
+#         square_grad['dW' + str(i + 1)] = beta2 * square_grad['dW' + str(i + 1)] + (1 - beta2) * (
+#                     grads_['dW' + str(i + 1)] ** 2)
+#         square_grad['db' + str(i + 1)] = beta2 * square_grad['db' + str(i + 1)] + (1 - beta2) * (
+#                     grads_['db' + str(i + 1)] ** 2)
+#
+#         sw_correct = square_grad['dW' + str(i + 1)] / (1 - np.power(beta2, epoch))
+#         sb_correct = square_grad['db' + str(i + 1)] / (1 - np.power(beta2, epoch))
+#
+#         parameters_['W' + str(i + 1)] -= learning_rate * vw_correct / np.sqrt(sw_correct + epsilon)
+#         parameters_['b' + str(i + 1)] -= learning_rate * vb_correct / np.sqrt(sb_correct + epsilon)
+#
+#     return parameters_, velcoity, square_grad
 
 
 def set_ax_gray(ax):

@@ -331,74 +331,116 @@ class BpNN(object):
 
         return parameters_, costs
 
+
+
     def optimizer_sgd_adam(self, X_, y_, parameters_, beta1, beta2, epsilon, num_epochs, learning_rate, seed):
         '''
+        使用Adam优化器进行参数更新。
 
-        :param X_:
-        :param y_:
+        :param X_: 输入数据
+        :param y_: 输出标签
         :param parameters_: 初始化的参数
-        :param v_:          梯度的指数加权移动平均数
-        :param beta:        冲量大小，
-        :param num_epochs:
-        :param learning_rate:
-        :param seed:
-        :return:
+        :param beta1: 一阶矩估计的指数衰减率
+        :param beta2: 二阶矩估计的指数衰减率
+        :param epsilon: 防止除零操作的小数
+        :param num_epochs: 训练次数
+        :param learning_rate: 学习率
+        :param seed: 随机种子，确保结果一致性
+        :return: 更新后的参数和损失值历史
         '''
         np.random.seed(seed)
         costs = []
         m_ = X_.shape[0]
+        # 初始化一阶矩估计和二阶矩估计（也就是动量和RMSprop）
         velcoity, square_grad = bpnnUtil.initialize_adam(parameters_)
         for epoch in range(num_epochs):
+            # 随机选择一个样本
             random_index = np.random.randint(0, m_)
 
+            # 前向传播，计算当前参数下的输出
             a_last, caches = self.forward_L_layer(X_[[random_index], :], parameters_)
+            # 反向传播，计算梯度
             grads = self.backward_L_layer(a_last, y_[[random_index], :], caches)
 
+            # 使用Adam优化器更新参数
             parameters_, velcoity, square_grad = bpnnUtil.update_parameters_with_sgd_adam(parameters_, grads, velcoity,
                                                                                           square_grad, epoch + 1,
                                                                                           learning_rate, beta1, beta2,
                                                                                           epsilon)
+            # 计算整个数据集的损失值
             a_last_cost, _ = self.forward_L_layer(X_, parameters_)
             cost = self.compute_cost(a_last_cost, y_)
             costs.append(cost)
 
         return parameters_, costs
+    # def optimizer_sgd_adam(self, X_, y_, parameters_, beta1, beta2, epsilon, num_epochs, learning_rate, seed):
+    #     '''
+    #
+    #     :param X_:
+    #     :param y_:
+    #     :param parameters_: 初始化的参数
+    #     :param v_:          梯度的指数加权移动平均数
+    #     :param beta:        冲量大小，
+    #     :param num_epochs:
+    #     :param learning_rate:
+    #     :param seed:
+    #     :return:
+    #     '''
+    #     np.random.seed(seed)
+    #     costs = []
+    #     m_ = X_.shape[0]
+    #     velcoity, square_grad = bpnnUtil.initialize_adam(parameters_)
+    #     for epoch in range(num_epochs):
+    #         random_index = np.random.randint(0, m_)
+    #
+    #         a_last, caches = self.forward_L_layer(X_[[random_index], :], parameters_)
+    #         grads = self.backward_L_layer(a_last, y_[[random_index], :], caches)
+    #
+    #         parameters_, velcoity, square_grad = bpnnUtil.update_parameters_with_sgd_adam(parameters_, grads, velcoity,
+    #                                                                                       square_grad, epoch + 1,
+    #                                                                                       learning_rate, beta1, beta2,
+    #                                                                                       epsilon)
+    #         a_last_cost, _ = self.forward_L_layer(X_, parameters_)
+    #         cost = self.compute_cost(a_last_cost, y_)
+    #         costs.append(cost)
+    #
+    #     return parameters_, costs
 
 
 if __name__ == '__main__':
     # 5.5
 
-    data_path = r'D:\Machine_Learning_Problem_Set\data\watermelon3_0_Ch.csv'
-    data3 = pd.read_csv(data_path, index_col=0)
-    #对非数值离散属性进行one hot编码将其转为连续数值属性，因为神经网络的输入、激活函数以及输出都是数值型数据
-    data = pd.get_dummies(data3, columns=['色泽', '根蒂', '敲声', '纹理', '脐部', '触感'])
-    #将标签转为0、1
-    data['好瓜'] = data['好瓜'].map({'是': 1, '否': 0})
-    #获取特征
-    X_test = data.drop('好瓜', axis=1)
-    #获取标签
-    y_test = data['好瓜']
-
-    bp = BpNN([3, 1], learning_rate=0.1, optimizer='gd')
-    bp.fit(X_test.values, y_test.values, num_epochs=200)
-
-    bp1 = BpNN([3, 1], learning_rate=0.1, optimizer='sgd')
-    bp1.fit(X_test.values, y_test.values, num_epochs=200)
-
-    bpnnUtil.plot_costs([bp.costs, bp1.costs], ['gd_cost', 'sgd_cost'])
+    # data_path = r'D:\Machine_Learning_Problem_Set\data\watermelon3_0_Ch.csv'
+    # data3 = pd.read_csv(data_path, index_col=0)
+    # #对非数值离散属性进行one hot编码将其转为连续数值属性，因为神经网络的输入、激活函数以及输出都是数值型数据
+    # data = pd.get_dummies(data3, columns=['色泽', '根蒂', '敲声', '纹理', '脐部', '触感'])
+    # #将标签转为0、1
+    # data['好瓜'] = data['好瓜'].map({'是': 1, '否': 0})
+    # #获取特征
+    # X_test = data.drop('好瓜', axis=1)
+    # #获取标签
+    # y_test = data['好瓜']
+    #
+    # bp = BpNN([3, 1], learning_rate=0.1, optimizer='gd')
+    # bp.fit(X_test.values, y_test.values, num_epochs=200)
+    #
+    # bp1 = BpNN([3, 1], learning_rate=0.1, optimizer='sgd')
+    # bp1.fit(X_test.values, y_test.values, num_epochs=200)
+    #
+    # bpnnUtil.plot_costs([bp.costs, bp1.costs], ['gd_cost', 'sgd_cost'])
 
     # 5.6
-    # iris = datasets.load_iris()
-    # X = pd.DataFrame(iris['data'], columns=iris['feature_names'])
-    # X = (X - np.mean(X, axis=0)) / np.var(X, axis=0)
-    #
-    # y = pd.Series(iris['target_names'][iris['target']])
-    # y = pd.get_dummies(y)
-    #
-    # bp = BpNN([3, 3], learning_rate=0.003, optimizer='adam')
-    # bp.fit(X.values, y.values, num_epochs=2000)
-    #
-    # bp1 = BpNN([3, 3], learning_rate=0.003, optimizer='sgd')
-    # bp1.fit(X.values, y.values, num_epochs=2000)
-    #
-    # bpnnUtil.plot_costs([bp.costs, bp1.costs], ['adam_cost', 'sgd_cost'])
+    iris = datasets.load_iris()
+    X = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    X = (X - np.mean(X, axis=0)) / np.var(X, axis=0)
+
+    y = pd.Series(iris['target_names'][iris['target']])
+    y = pd.get_dummies(y)
+
+    bp = BpNN([3, 3], learning_rate=0.003, optimizer='adam')
+    bp.fit(X.values, y.values, num_epochs=2000)
+
+    bp1 = BpNN([3, 3], learning_rate=0.003, optimizer='sgd')
+    bp1.fit(X.values, y.values, num_epochs=2000)
+
+    bpnnUtil.plot_costs([bp.costs, bp1.costs], ['adam_cost', 'sgd_cost'])
