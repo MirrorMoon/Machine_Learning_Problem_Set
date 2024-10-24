@@ -108,13 +108,16 @@ class BpNN(object):
 
         # 计算权重和偏置的梯度
         #书5.11式，5.12式,5.15式
-        #dz是gj,a_pre_是bh，1/m是学习率η
+        #dz是gj,a_pre_是bh,m是均方误差的样本数m
+        #注意这里使用大量的向量运算是因为我们不像书上只计算某一个神经元的偏导，而是将一层内所有神经元的梯度都计算出来，而所有神经元的梯度的计算方法显然一致，因此引入向量计算
         dw = np.dot(dz_.T, a_pre_) / m
         db = np.sum(dz_, axis=0, keepdims=True) / m
         #
         # da_pre =np.dot(np.dot(dz_, w_),np.dot(a_pre_.T,a_pre_))  # 计算前一层神经元的梯度，这是书上的5.15式，但是结果是错误的
         #这里是常规的反向传播算法，即计算出损失函数相对于前一层的激活值的梯度
         #然后这个da_pre_在下次循环的时候就是上一层的da_，这样就可以一层一层的反向传播计算梯度
+        #这里使用点积的形式可以完美的处理gj*whj以及针对这个结果的加和
+        #比如考虑17x3x3这样的一个三层网络，那么dz_的维度是17x3，w_的维度是3x3，那么点积的结果是17x3，这个结果就是gj*whj
         da_pre = np.dot(dz_, w_)  # 计算前一层的激活值的梯度
 
         # 确保梯度的形状与相应的参数一致
@@ -141,7 +144,9 @@ class BpNN(object):
             # 计算输出层的梯度
             #将最后一层即最终的输出层的输入作为反向传播的输入，计算输出层的梯度
             #计算出输出层的梯度，即损失函数E对输出层y^的偏导数，这里的损失函数是交叉熵
-            da_last = -(y_ / a_last - (1 - y_) / (1 - a_last))
+            # da_last = -(y_ / a_last - (1 - y_) / (1 - a_last))
+            #使用均方误差
+            da_last = a_last - y_
             da_pre_L_1, dwL_, dbL_ = self.backward_one_layer(da_last, caches[L - 1], 'sigmoid')
             #todo softmax的梯度计算
         else:  # 多分类
@@ -201,7 +206,7 @@ class BpNN(object):
             #新建一个输入层的临时变量，用于保存上一层的输入
             a_pre_ = a_
             #计算出当前层的输出和缓存，缓存用于反向传播，将当前层的输出继续作为下一层的输入
-            a_, cache_ = self.forward_one_layer(a_pre_, w_, b_, 'relu')
+            a_, cache_ = self.forward_one_layer(a_pre_, w_, b_, 'sigmoid')
             caches.append(cache_)
 
         # 前向传播最后一层
