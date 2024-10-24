@@ -122,6 +122,7 @@ def update_parameters_with_gd(parameters_, grads, learning_rate):
     transDictObject2Float(grads)
 
     #L+1是因为向下取整后L_=2,那么range(1,2)只有1，所以要加1遍历最后一层
+    #(1,L_)w1 = w1-leraning_rate*dw1
     for l in range(1, L_ + 1):
         #利用计算出来的梯度逐层开始更新参数
         parameters_['W' + str(l)] -= learning_rate * grads['dW' + str(l)]

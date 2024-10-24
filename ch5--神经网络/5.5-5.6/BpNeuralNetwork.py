@@ -39,7 +39,7 @@ class BpNN(object):
         # 这样做是为了确保神经网络的输入层维度正确地包含在网络的层次结构中。
         layer_dims_.insert(0, n)
 
-        # 如果标签是一维的，将其转换为二维，为了保证兼容性
+        # 如果标签是一维的，将其转换为二维，为了保证兼容性[1,2,3],[[1,2,3]]
         if y_.ndim == 1:
             y_ = y_.reshape(-1, 1)
 
@@ -415,37 +415,37 @@ class BpNN(object):
 if __name__ == '__main__':
     # 5.5
 
-    # data_path = r'D:\Machine_Learning_Problem_Set\data\watermelon3_0_Ch.csv'
-    # data3 = pd.read_csv(data_path, index_col=0)
-    # #对非数值离散属性进行one hot编码将其转为连续数值属性，因为神经网络的输入、激活函数以及输出都是数值型数据
-    # data = pd.get_dummies(data3, columns=['色泽', '根蒂', '敲声', '纹理', '脐部', '触感'])
-    # #将标签转为0、1
-    # data['好瓜'] = data['好瓜'].map({'是': 1, '否': 0})
-    # #获取特征
-    # X_test = data.drop('好瓜', axis=1)
-    # #获取标签
-    # y_test = data['好瓜']
-    #
-    # bp = BpNN([3, 1], learning_rate=0.1, optimizer='gd')
-    # bp.fit(X_test.values, y_test.values, num_epochs=200)
-    #
-    # bp1 = BpNN([3, 1], learning_rate=0.1, optimizer='sgd')
-    # bp1.fit(X_test.values, y_test.values, num_epochs=200)
-    #
-    # bpnnUtil.plot_costs([bp.costs, bp1.costs], ['gd_cost', 'sgd_cost'])
+    data_path = r'D:\Machine_Learning_Problem_Set\data\watermelon3_0_Ch.csv'
+    data3 = pd.read_csv(data_path, index_col=0)
+    #对非数值离散属性进行one hot编码将其转为连续数值属性，因为神经网络的输入、激活函数以及输出都是数值型数据
+    data = pd.get_dummies(data3, columns=['色泽', '根蒂', '敲声', '纹理', '脐部', '触感'])
+    #将标签转为0、1
+    data['好瓜'] = data['好瓜'].map({'是': 1, '否': 0})
+    #获取特征
+    X_test = data.drop('好瓜', axis=1)
+    #获取标签
+    y_test = data['好瓜']
+    #累计bp
+    bp = BpNN([3, 1], learning_rate=0.1, optimizer='gd')
+    bp.fit(X_test.values, y_test.values, num_epochs=200)
+    #标准bp
+    bp1 = BpNN([3, 1], learning_rate=0.1, optimizer='sgd')
+    bp1.fit(X_test.values, y_test.values, num_epochs=200)
+
+    bpnnUtil.plot_costs([bp.costs, bp1.costs], ['gd_cost', 'sgd_cost'])
 
     # 5.6
     iris = datasets.load_iris()
-    X = pd.DataFrame(iris['data'], columns=iris['feature_names'])
-    X = (X - np.mean(X, axis=0)) / np.var(X, axis=0)
-
-    y = pd.Series(iris['target_names'][iris['target']])
-    y = pd.get_dummies(y)
-
-    bp = BpNN([3, 3], learning_rate=0.003, optimizer='adam')
-    bp.fit(X.values, y.values, num_epochs=2000)
-
-    bp1 = BpNN([3, 3], learning_rate=0.003, optimizer='sgd')
-    bp1.fit(X.values, y.values, num_epochs=2000)
-
-    bpnnUtil.plot_costs([bp.costs, bp1.costs], ['adam_cost', 'sgd_cost'])
+    # X = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    # X = (X - np.mean(X, axis=0)) / np.var(X, axis=0)
+    #
+    # y = pd.Series(iris['target_names'][iris['target']])
+    # y = pd.get_dummies(y)
+    #
+    # bp = BpNN([3, 3], learning_rate=0.003, optimizer='adam')
+    # bp.fit(X.values, y.values, num_epochs=2000)
+    #
+    # bp1 = BpNN([3, 3], learning_rate=0.003, optimizer='sgd')
+    # bp1.fit(X.values, y.values, num_epochs=2000)
+    #
+    # bpnnUtil.plot_costs([bp.costs, bp1.costs], ['adam_cost', 'sgd_cost'])
