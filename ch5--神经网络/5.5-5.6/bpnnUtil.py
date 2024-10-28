@@ -59,8 +59,16 @@ def cross_entry_sigmoid(y_hat_, y_):
     loss = -(np.dot(y_.T, np.log(y_hat_)) + np.dot(1 - y_.T, np.log(1 - y_hat_))) / m
 
     return np.squeeze(loss)
-
-
+def MSE(y_hat_, y_):
+    '''
+    计算均方误差
+    :param y_hat_:  模型输出值
+    :param y_:      样本真实标签值
+    :return:
+    '''
+    m = y_.shape[0]
+    loss = np.sum((y_hat_ - y_) ** 2) / (2 * m)
+    return np.squeeze(loss)
 def cross_entry_softmax(y_hat_, y_):
     '''
     计算多分类时的交叉熵

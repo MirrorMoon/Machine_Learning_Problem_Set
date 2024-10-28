@@ -334,7 +334,7 @@ class mySVM(object):
 if __name__ == '__main__':
     clf = mySVM(C=10000)
 
-    path = r'C:\Users\hanmi\Documents\xiguabook\watermelon3_0a_Ch.txt'
+    path = r'D:\Machine_Learning_Problem_Set\data\watermelon3_0a_Ch.txt'
     data = pd.read_table(path, delimiter=' ', dtype=float)
 
     X = data.iloc[:, [0, 1]].values
@@ -342,7 +342,7 @@ if __name__ == '__main__':
 
     y[y == 0] = -1
 
-    start = time.clock()
+    # start = time.clock()
     clf.fit(X, y)
 
     plt_support_(clf, X, y, 'rbf', 10000)

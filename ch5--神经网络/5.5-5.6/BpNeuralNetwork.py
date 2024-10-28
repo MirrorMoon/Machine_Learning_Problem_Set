@@ -84,7 +84,7 @@ class BpNN(object):
         if y_.ndim == 1:
             y_ = y_.reshape(-1, 1)
         if y_.shape[1] == 1:
-            cost = bpnnUtil.cross_entry_sigmoid(y_hat_, y_)
+            cost = bpnnUtil.MSE(y_hat_, y_)
         else:
             cost = bpnnUtil.cross_entry_softmax(y_hat_, y_)
         return cost
