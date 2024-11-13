@@ -9,7 +9,7 @@ def AODE(x, X, Y, laplace=True, mmin=3):
     # laplace 是否采用“拉普拉斯修正”，默认为真
     # mmin 作为父属性最少需要的样本数
     #利用集合去重
-    C = list(set(Y))  # 所有可能标记
+    C = list(set(Y))  # 所有可能标记，计算先验概率
     N = [len(set([x[i] for x in X])) for i in range(len(x))]  # 各个属性的可能取值数
     p = []  # 存储概率值
     print('===============平均独依赖贝叶斯分类器(AODE)===============')
@@ -81,7 +81,7 @@ def AODE(x, X, Y, laplace=True, mmin=3):
                 #父为连续，子为离散
                 if type(x[i]) == float and type(x[j]) == str:
                     Xcj = [xc for xc in Xc if xc[j] == x[j]]
-                    #去除满足子属性条件的父属性
+                    #取出满足子属性条件的父属性
                     Xcji = [xcj[i] for xcj in Xcj]
                     if len(Xcj) == 0:
                         u = 0
@@ -150,8 +150,7 @@ Y = [1] * 8 + [0] * 9
 
 x = ['青绿', '蜷缩', '浊响', '清晰', '凹陷', '硬滑', 0.697, 0.460]  # 测试例"测1"
 print("测1样本：")
-AODE(x, X, Y)  # 此时不用拉普拉斯修正，方便与教材对比计算结果
-# 若用拉普拉斯修正，可以去掉最后一个参数，或者设置为True
+AODE(x, X, Y)
 
 
 # 任意设置一个新的"测例"
