@@ -160,4 +160,6 @@ for i, k in enumerate([2, 3, 4]):  # 不同的k值
         for kk in range(k):
             ps = points(D[C == kk])
             plt.plot(ps[:, 0], ps[:, 1], '--r', linewidth=1)
+plt.tight_layout()
+
 plt.show()
