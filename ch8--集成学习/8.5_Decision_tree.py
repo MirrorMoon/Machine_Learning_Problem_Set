@@ -86,5 +86,6 @@ for t in [3, 5, 11]:
         plt.contour(X1, X2, Ypre, colors='k', linewidths=1, levels=[0])
     # 画集成学习器划分边界
     Ypre = predict(H[:t], X1, X2)
+    #等高线能找到函数所有取值相同的点，而预测值为0就是就是决策点（因为能把1和-1分开），因此利用等高线和预测值为0的点就能找到决策边界
     plt.contour(X1, X2, Ypre, colors='r', linewidths=5, levels=[0])
     plt.show()
